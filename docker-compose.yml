@@ -1,6 +1,6 @@
 services:
   server:
-    image: docker.io/bluicezhen/onepage-diary-server:latest
+    image: bluicezhen/onepage-diary-server:latest
     pull_policy: always
     ports:
       - "8080:8080"
@@ -14,7 +14,7 @@ services:
     volumes:
       - ./data:/data
   web:
-    image: docker.io/bluicezhen/onepage-diary-web:latest
+    image: bluicezhen/onepage-diary-web:latest
     pull_policy: always
     ports:
       - "${WEB_HTTP_PORT:-8081}:80"
