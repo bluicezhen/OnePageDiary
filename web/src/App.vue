@@ -2,20 +2,16 @@
   <div class="app">
     <header class="app-bar">
       <div class="app-bar__left">
-        <button class="icon-btn" @click="toggleSidebar" aria-label="toggle calendar">
+        <button class="icon-btn" @click="toggleCalendar" aria-label="toggle calendar">
           ☰
         </button>
         <div class="title">{{ headerTitle }}</div>
       </div>
       <div class="app-bar__right">
         <button class="ghost-btn" @click="openView('history')">历史</button>
-        <button class="ghost-btn" @click="openView('search')">搜索</button>
         <button class="ghost-btn" @click="openView('settings')">设置</button>
         <button class="icon-btn" @click="toggleSyncPanel" aria-label="sync status">
           <span :class="['status-dot', syncDotClass]"></span>
-        </button>
-        <button class="icon-btn" @click="openCalendarDrawer" aria-label="calendar">
-          日历
         </button>
       </div>
     </header>
@@ -77,27 +73,10 @@
           <div class="panel-header">
             <div class="panel-title">历史日记</div>
           </div>
-          <div class="list">
-            <button v-for="entry in entries" :key="entry.date" class="entry-card" @click="openEntry(entry.date)">
-              <div class="entry-card__header">
-                <div class="entry-date">{{ formatDateDisplay(entry.date) }}</div>
-                <div class="entry-status">{{ statusLabel(entry) }}</div>
-              </div>
-              <div class="entry-preview">{{ previewText(entry.content) }}</div>
-              <div class="entry-meta">{{ formatTimeDisplay(entry.updatedAt) }}</div>
-            </button>
-            <div v-if="entries.length === 0" class="empty">暂无记录</div>
-          </div>
-        </section>
-
-        <section v-if="view === 'search'" class="panel">
-          <div class="panel-header">
-            <div class="panel-title">搜索</div>
-          </div>
-          <input v-model="searchQuery" class="search-input" placeholder="输入关键词" />
+          <input v-model="searchQuery" class="search-input" placeholder="搜索历史日记" />
           <div class="list">
             <button
-              v-for="entry in searchResults"
+              v-for="entry in historyList"
               :key="entry.date"
               class="entry-card"
               @click="openEntry(entry.date)"
@@ -107,8 +86,11 @@
                 <div class="entry-status">{{ statusLabel(entry) }}</div>
               </div>
               <div class="entry-preview">{{ previewText(entry.content) }}</div>
+              <div class="entry-meta">{{ formatTimeDisplay(entry.updatedAt) }}</div>
             </button>
-            <div v-if="searchQuery && searchResults.length === 0" class="empty">未找到匹配内容</div>
+            <div v-if="historyList.length === 0" class="empty">
+              {{ searchQuery ? "未找到匹配内容" : "暂无记录" }}
+            </div>
           </div>
         </section>
 
@@ -118,24 +100,44 @@
           </div>
           <div class="form">
             <label class="form-label">服务端地址</label>
-            <input v-model="settings.serverBaseUrl" class="text-input" placeholder="http://127.0.0.1:8080" />
+            <input
+              v-model="settings.serverBaseUrl"
+              class="text-input"
+              placeholder="http://127.0.0.1:8080"
+              :disabled="isLoggedIn"
+            />
 
-            <label class="form-label">用户名</label>
-            <input v-model="settings.username" class="text-input" placeholder="用户名" />
+            <template v-if="!isLoggedIn">
+              <label class="form-label">用户名</label>
+              <input v-model="settings.username" class="text-input" placeholder="用户名" />
 
-            <label class="form-label">密码</label>
-            <input v-model="loginPassword" class="text-input" type="password" placeholder="密码" />
+              <label class="form-label">密码</label>
+              <input v-model="loginPassword" class="text-input" type="password" placeholder="密码" />
 
-            <div class="form-row">
-              <label class="checkbox">
-                <input v-model="settings.rememberCredentials" type="checkbox" />
-                记住登录
-              </label>
-            </div>
+              <div class="form-row">
+                <label class="checkbox">
+                  <input v-model="settings.rememberCredentials" type="checkbox" />
+                  记住登录
+                </label>
+              </div>
 
-            <div class="form-actions">
-              <button class="primary-btn" @click="login">登录</button>
-              <button class="ghost-btn" @click="logout">登出</button>
+              <div class="form-actions">
+                <button class="primary-btn" @click="login">登录</button>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="login-status">已登录：{{ settings.username || "未知用户" }}</div>
+              <div class="form-actions">
+                <button class="ghost-btn" @click="logout">登出</button>
+              </div>
+            </template>
+
+            <div
+              v-if="authMessage"
+              :class="['form-hint', authMessageTone === 'error' ? 'form-hint--error' : 'form-hint--success']"
+            >
+              {{ authMessage }}
             </div>
 
             <div class="form-row">
@@ -271,7 +273,7 @@ import { formatDateDisplay, formatTimeDisplay, todayString } from "./utils/date"
 
 marked.setOptions({ breaks: true });
 
-const view = ref<"editor" | "history" | "search" | "settings" | "conflict">("editor");
+const view = ref<"editor" | "history" | "settings" | "conflict">("editor");
 const editorMode = ref<"edit" | "preview">("edit");
 const selectedDate = ref(todayString());
 const currentEntry = ref<EntryRecord | null>(null);
@@ -285,6 +287,8 @@ const calendarDrawerOpen = ref(false);
 const showSyncPanel = ref(false);
 const loginPassword = ref("");
 const sessionToken = ref<string | null>(null);
+const authMessage = ref("");
+const authMessageTone = ref<"success" | "error">("success");
 
 const settings = reactive<Settings>({
   serverBaseUrl: "",
@@ -316,9 +320,6 @@ const headerTitle = computed(() => {
   if (view.value === "history") {
     return "历史";
   }
-  if (view.value === "search") {
-    return "搜索";
-  }
   if (view.value === "settings") {
     return "设置";
   }
@@ -335,9 +336,9 @@ const entryMarkers = computed<Record<string, boolean>>(() => {
   return markers;
 });
 
-const searchResults = computed(() => {
+const historyList = computed(() => {
   if (!searchQuery.value) {
-    return [];
+    return entries.value;
   }
   const keyword = searchQuery.value.toLowerCase();
   return entries.value.filter((entry) => entry.content.toLowerCase().includes(keyword));
@@ -345,6 +346,7 @@ const searchResults = computed(() => {
 
 const pendingCount = ref(0);
 const conflictCount = ref(0);
+const isLoggedIn = computed(() => !!activeToken());
 
 const entryStatusLabel = computed(() => {
   if (!currentEntry.value) {
@@ -371,6 +373,9 @@ const syncDotClass = computed(() => {
   if (pendingCount.value > 0) {
     return "status-dot--pending";
   }
+  if (!settings.serverBaseUrl || !activeToken()) {
+    return "status-dot--unauth";
+  }
   if (!syncStatus.online) {
     return "status-dot--offline";
   }
@@ -379,12 +384,12 @@ const syncDotClass = computed(() => {
 
 let saveTimer: number | null = null;
 
-function toggleSidebar() {
+function toggleCalendar() {
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    calendarDrawerOpen.value = true;
+    return;
+  }
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
-}
-
-function openCalendarDrawer() {
-  calendarDrawerOpen.value = true;
 }
 
 function closeCalendarDrawer() {
@@ -550,12 +555,17 @@ function activeToken() {
 }
 
 async function login() {
+  authMessage.value = "";
   if (!settings.serverBaseUrl) {
     syncStatus.lastError = "请先填写服务端地址";
+    authMessageTone.value = "error";
+    authMessage.value = syncStatus.lastError;
     return;
   }
   if (!settings.username || !loginPassword.value) {
     syncStatus.lastError = "请输入用户名和密码";
+    authMessageTone.value = "error";
+    authMessage.value = syncStatus.lastError;
     return;
   }
 
@@ -578,8 +588,17 @@ async function login() {
     }
     await saveSettings({ ...settings });
     syncStatus.lastError = "";
+    authMessageTone.value = "success";
+    authMessage.value = "登录成功";
+    if (settings.autoSyncEnabled && navigator.onLine) {
+      await triggerSync();
+    } else {
+      await checkServerReachable();
+    }
   } catch (err) {
     syncStatus.lastError = err instanceof Error ? err.message : "login_failed";
+    authMessageTone.value = "error";
+    authMessage.value = syncStatus.lastError;
   }
 }
 
@@ -587,6 +606,9 @@ async function logout() {
   sessionToken.value = null;
   settings.token = null;
   await saveSettings({ ...settings });
+  syncStatus.lastError = "";
+  authMessageTone.value = "success";
+  authMessage.value = "已登出";
 }
 
 async function checkServerReachable() {

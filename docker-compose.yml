@@ -17,6 +17,12 @@ services:
     image: docker.io/bluicezhen/onepage-diary-web:latest
     pull_policy: always
     ports:
-      - "8081:80"
+      - "${WEB_HTTP_PORT:-8081}:80"
+      - "${WEB_HTTPS_PORT:-8443}:443"
+    environment:
+      TLS_CERT_FILE: "${TLS_CERT_FILE:-}"
+      TLS_KEY_FILE: "${TLS_KEY_FILE:-}"
+    volumes:
+      - "${TLS_CERTS_DIR:-./certs}:/certs:ro"
     depends_on:
       - server

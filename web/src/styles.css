@@ -57,7 +57,7 @@ button {
 .icon-btn {
   background: none;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 6px 10px;
   cursor: pointer;
   color: var(--text-secondary);
@@ -66,7 +66,7 @@ button {
 .ghost-btn {
   background: none;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 6px 12px;
   cursor: pointer;
   color: var(--text-secondary);
@@ -76,7 +76,7 @@ button {
   background: var(--text-primary);
   border: 1px solid var(--text-primary);
   color: #ffffff;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px 16px;
   cursor: pointer;
 }
@@ -85,7 +85,7 @@ button {
   background: none;
   border: 1px solid var(--text-secondary);
   color: var(--danger);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px 16px;
   cursor: pointer;
 }
@@ -101,7 +101,7 @@ button {
   width: 300px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -143,7 +143,7 @@ button {
   border: 1px solid transparent;
   background: none;
   padding: 8px 0;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   color: var(--text-secondary);
   display: flex;
@@ -178,7 +178,7 @@ button {
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 16px;
   box-shadow: 0 6px 18px var(--shadow);
 }
@@ -209,7 +209,7 @@ button {
   width: 100%;
   min-height: 360px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 12px;
   font-size: 15px;
   line-height: 1.6;
@@ -220,7 +220,7 @@ button {
   min-height: 360px;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 4px;
   background: #fafafa;
 }
 
@@ -234,7 +234,7 @@ button {
   text-align: left;
   background: #fbfbfb;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 12px;
   cursor: pointer;
 }
@@ -267,9 +267,13 @@ button {
 .text-input {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 10px 12px;
   font-size: 14px;
+}
+
+.search-input {
+  margin-bottom: 12px;
 }
 
 .form {
@@ -292,6 +296,23 @@ button {
 .form-actions {
   display: flex;
   gap: 12px;
+}
+
+.form-hint {
+  font-size: 13px;
+}
+
+.form-hint--success {
+  color: #5fa885;
+}
+
+.form-hint--error {
+  color: #c2413b;
+}
+
+.login-status {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .checkbox {
@@ -336,7 +357,7 @@ button {
 .conflict-remote {
   border: 1px dashed var(--border);
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 4px;
   min-height: 240px;
   white-space: pre-wrap;
   color: var(--text-secondary);
@@ -355,7 +376,7 @@ button {
   width: 260px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 12px;
   box-shadow: 0 8px 20px var(--shadow);
   display: flex;
@@ -377,44 +398,57 @@ button {
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   display: inline-block;
   background: var(--text-muted);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
 }
 
 .status-dot--ok {
-  background: var(--text-primary);
+  background: #5fa885;
+  box-shadow: 0 0 0 3px rgba(95, 168, 133, 0.25);
 }
 
 .status-dot--pending {
-  background: #666666;
+  background: #d9822b;
+  box-shadow: 0 0 0 3px rgba(217, 130, 43, 0.25);
 }
 
 .status-dot--conflict {
-  background: #111111;
-  box-shadow: 0 0 0 2px #d0d0d0;
+  background: #c2413b;
+  box-shadow: 0 0 0 3px rgba(194, 65, 59, 0.3);
 }
 
 .status-dot--offline {
-  background: #999999;
+  background: #9aa1a8;
+  box-shadow: 0 0 0 3px rgba(154, 161, 168, 0.25);
+}
+
+.status-dot--unauth {
+  background: #b2b8bf;
+  box-shadow: 0 0 0 3px rgba(178, 184, 191, 0.25);
 }
 
 .status-dot--syncing {
-  background: #444444;
-  animation: pulse 1s infinite;
+  background: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  animation: pulse 1.2s infinite;
 }
 
 @keyframes pulse {
   0% {
-    opacity: 0.4;
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45);
+    opacity: 0.8;
   }
-  50% {
+  70% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
     opacity: 1;
   }
   100% {
-    opacity: 0.4;
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    opacity: 0.8;
   }
 }
 

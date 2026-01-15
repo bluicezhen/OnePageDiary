@@ -48,6 +48,7 @@ docker compose up
 
 前端地址：`http://127.0.0.1:8081`（通过 `/api` 反代后端，默认无需手动填写服务端地址）。
 默认使用 Docker Hub 镜像并设置 `pull_policy: always`，每次启动都会拉取最新镜像。
+如需 HTTPS，可在 `.env` 中配置证书并使用 `https://127.0.0.1:8443` 访问。
 
 可选：在仓库根目录新建 `.env`（与 `docker-compose.yml` 同级）覆盖后端配置，例如：
 
@@ -58,6 +59,13 @@ APP_ADMIN_USER=admin
 APP_ADMIN_PASS=admin
 APP_JWT_SECRET=change-me
 APP_CORS_ORIGINS=*
+
+# 可选：启用 HTTPS（需提供证书文件）
+TLS_CERTS_DIR=./certs
+TLS_CERT_FILE=fullchain.pem
+TLS_KEY_FILE=privkey.pem
+WEB_HTTP_PORT=8081
+WEB_HTTPS_PORT=8443
 ```
 
 ### GitHub Actions 构建镜像
