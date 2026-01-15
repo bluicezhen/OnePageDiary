@@ -13,12 +13,12 @@ export function todayString(): string {
   return toLocalDateString(new Date());
 }
 
-export function formatDateDisplay(date: string): string {
+export function formatDateDisplay(date: string, locale = "zh-CN"): string {
   const parsed = new Date(date + "T00:00:00");
   if (Number.isNaN(parsed.getTime())) {
     return date;
   }
-  return parsed.toLocaleDateString("zh-CN", {
+  return parsed.toLocaleDateString(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -26,7 +26,7 @@ export function formatDateDisplay(date: string): string {
   });
 }
 
-export function formatTimeDisplay(value: string | null): string {
+export function formatTimeDisplay(value: string | null, locale = "zh-CN"): string {
   if (!value) {
     return "—";
   }
@@ -34,7 +34,7 @@ export function formatTimeDisplay(value: string | null): string {
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-  return parsed.toLocaleString("zh-CN", {
+  return parsed.toLocaleString(locale, {
     hour: "2-digit",
     minute: "2-digit",
     month: "2-digit",

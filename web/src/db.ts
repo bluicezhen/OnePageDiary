@@ -9,7 +9,8 @@ const DEFAULT_SETTINGS: Settings = {
   username: "",
   token: null,
   rememberCredentials: false,
-  autoSyncEnabled: true
+  autoSyncEnabled: true,
+  language: "auto"
 };
 
 const DEFAULT_SYNC_STATE: SyncState = {

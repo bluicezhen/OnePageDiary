@@ -2,15 +2,15 @@
   <div class="app">
     <header class="app-bar">
       <div class="app-bar__left">
-        <button class="icon-btn" @click="toggleCalendar" aria-label="toggle calendar">
+        <button class="icon-btn" @click="toggleCalendar" :aria-label="t('calendarToggle')">
           ☰
         </button>
         <div class="title">{{ headerTitle }}</div>
       </div>
       <div class="app-bar__right">
-        <button class="ghost-btn" @click="openView('history')">历史</button>
-        <button class="ghost-btn" @click="openView('settings')">设置</button>
-        <button class="icon-btn" @click="toggleSyncPanel" aria-label="sync status">
+        <button class="ghost-btn" @click="openView('history')">{{ t("navHistory") }}</button>
+        <button class="ghost-btn" @click="openView('settings')">{{ t("navSettings") }}</button>
+        <button class="icon-btn" @click="toggleSyncPanel" :aria-label="t('syncStatusLabel')">
           <span :class="['status-dot', syncDotClass]"></span>
         </button>
       </div>
@@ -50,12 +50,12 @@
       <main class="main">
         <section v-if="view === 'editor'" class="panel editor-panel">
           <div class="panel-header">
-            <div class="panel-title">{{ formatDateDisplay(selectedDate) }}</div>
+            <div class="panel-title">{{ formatDateDisplay(selectedDate, localeTag) }}</div>
             <div class="panel-status">{{ entryStatusLabel }}</div>
             <div class="panel-actions">
               <button class="ghost-btn" @click="toggleEditorMode">{{ editorModeLabel }}</button>
               <button class="ghost-btn" @click="deleteCurrentEntry" :disabled="!currentEntry">
-                删除
+                {{ t("editorDelete") }}
               </button>
             </div>
           </div>
@@ -63,7 +63,7 @@
             <textarea
               v-model="editorContent"
               class="editor-textarea"
-              placeholder="今天写点什么..."
+              :placeholder="t('editorPlaceholder')"
             ></textarea>
           </div>
           <div v-else class="preview-body" v-html="previewHtml"></div>
@@ -71,9 +71,9 @@
 
         <section v-if="view === 'history'" class="panel">
           <div class="panel-header">
-            <div class="panel-title">历史日记</div>
+            <div class="panel-title">{{ t("historyTitle") }}</div>
           </div>
-          <input v-model="searchQuery" class="search-input" placeholder="搜索历史日记" />
+          <input v-model="searchQuery" class="search-input" :placeholder="t('historySearchPlaceholder')" />
           <div class="list">
             <button
               v-for="entry in historyList"
@@ -82,24 +82,24 @@
               @click="openEntry(entry.date)"
             >
               <div class="entry-card__header">
-                <div class="entry-date">{{ formatDateDisplay(entry.date) }}</div>
+                <div class="entry-date">{{ formatDateDisplay(entry.date, localeTag) }}</div>
                 <div class="entry-status">{{ statusLabel(entry) }}</div>
               </div>
               <div class="entry-preview">{{ previewText(entry.content) }}</div>
-              <div class="entry-meta">{{ formatTimeDisplay(entry.updatedAt) }}</div>
+              <div class="entry-meta">{{ formatTimeDisplay(entry.updatedAt, localeTag) }}</div>
             </button>
             <div v-if="historyList.length === 0" class="empty">
-              {{ searchQuery ? "未找到匹配内容" : "暂无记录" }}
+              {{ searchQuery ? t("historyNoMatch") : t("historyEmpty") }}
             </div>
           </div>
         </section>
 
         <section v-if="view === 'settings'" class="panel">
           <div class="panel-header">
-            <div class="panel-title">设置</div>
+            <div class="panel-title">{{ t("titleSettings") }}</div>
           </div>
           <div class="form">
-            <label class="form-label">服务端地址</label>
+            <label class="form-label">{{ t("settingsServerUrl") }}</label>
             <input
               v-model="settings.serverBaseUrl"
               class="text-input"
@@ -107,29 +107,41 @@
               :disabled="isLoggedIn"
             />
 
-            <template v-if="!isLoggedIn">
-              <label class="form-label">用户名</label>
-              <input v-model="settings.username" class="text-input" placeholder="用户名" />
+            <label class="form-label">{{ t("settingsLanguage") }}</label>
+            <select v-model="settings.language" class="text-input">
+              <option value="auto">{{ t("settingsLanguageAuto") }}</option>
+              <option value="zh">{{ t("settingsLanguageZh") }}</option>
+              <option value="en">{{ t("settingsLanguageEn") }}</option>
+            </select>
 
-              <label class="form-label">密码</label>
-              <input v-model="loginPassword" class="text-input" type="password" placeholder="密码" />
+            <template v-if="!isLoggedIn">
+              <label class="form-label">{{ t("settingsUsername") }}</label>
+              <input v-model="settings.username" class="text-input" :placeholder="t('settingsUsername')" />
+
+              <label class="form-label">{{ t("settingsPassword") }}</label>
+              <input
+                v-model="loginPassword"
+                class="text-input"
+                type="password"
+                :placeholder="t('settingsPassword')"
+              />
 
               <div class="form-row">
                 <label class="checkbox">
                   <input v-model="settings.rememberCredentials" type="checkbox" />
-                  记住登录
+                  {{ t("settingsRemember") }}
                 </label>
               </div>
 
               <div class="form-actions">
-                <button class="primary-btn" @click="login">登录</button>
+                <button class="primary-btn" @click="login">{{ t("settingsLogin") }}</button>
               </div>
             </template>
 
             <template v-else>
-              <div class="login-status">已登录：{{ settings.username || "未知用户" }}</div>
+              <div class="login-status">{{ loggedInLabel }}</div>
               <div class="form-actions">
-                <button class="ghost-btn" @click="logout">登出</button>
+                <button class="ghost-btn" @click="logout">{{ t("settingsLogout") }}</button>
               </div>
             </template>
 
@@ -143,43 +155,45 @@
             <div class="form-row">
               <label class="checkbox">
                 <input v-model="settings.autoSyncEnabled" type="checkbox" />
-                前台自动同步
+                {{ t("settingsAutoSync") }}
               </label>
             </div>
 
             <div class="form-actions">
-              <button class="ghost-btn" @click="exportData">导出</button>
+              <button class="ghost-btn" @click="exportData">{{ t("settingsExport") }}</button>
               <label class="ghost-btn file-btn">
-                导入
+                {{ t("settingsImport") }}
                 <input type="file" accept="application/json" @change="importData" />
               </label>
             </div>
 
-            <button class="danger-btn" @click="clearLocalData">清除本地数据</button>
+            <button class="danger-btn" @click="clearLocalData">{{ t("settingsClear") }}</button>
           </div>
         </section>
 
         <section v-if="view === 'conflict'" class="panel conflict-panel">
           <div class="panel-header">
-            <div class="panel-title">冲突处理</div>
+            <div class="panel-title">{{ t("conflictTitle") }}</div>
             <div class="panel-status">
-              {{ conflictEntry ? formatDateDisplay(conflictEntry.date) : "" }}
+              {{ conflictEntry ? formatDateDisplay(conflictEntry.date, localeTag) : "" }}
             </div>
           </div>
           <div v-if="conflictEntry" class="conflict-body">
             <div class="conflict-column">
-              <div class="conflict-title">本地版本</div>
+              <div class="conflict-title">{{ t("conflictLocal") }}</div>
               <textarea v-model="editorContent" class="editor-textarea"></textarea>
             </div>
             <div class="conflict-column">
-              <div class="conflict-title">远端版本</div>
-              <div v-if="conflictEntry.conflictRemoteDeleted" class="conflict-remote">远端已删除</div>
+              <div class="conflict-title">{{ t("conflictRemote") }}</div>
+              <div v-if="conflictEntry.conflictRemoteDeleted" class="conflict-remote">
+                {{ t("conflictRemoteDeleted") }}
+              </div>
               <pre v-else class="conflict-remote">{{ conflictEntry.conflictRemoteContent }}</pre>
             </div>
           </div>
           <div class="conflict-actions">
-            <button class="danger-btn" @click="resolveConflictLocal">用本地覆盖远端</button>
-            <button class="ghost-btn" @click="resolveConflictRemote">用远端覆盖本地</button>
+            <button class="danger-btn" @click="resolveConflictLocal">{{ t("conflictUseLocal") }}</button>
+            <button class="ghost-btn" @click="resolveConflictRemote">{{ t("conflictUseRemote") }}</button>
           </div>
         </section>
       </main>
@@ -187,31 +201,31 @@
 
     <div v-if="showSyncPanel" class="sync-panel">
       <div class="sync-row">
-        <span>网络</span>
-        <span>{{ syncStatus.online ? "在线" : "离线" }}</span>
+        <span>{{ t("syncNetwork") }}</span>
+        <span>{{ syncStatus.online ? t("syncOnline") : t("syncOffline") }}</span>
       </div>
       <div class="sync-row">
-        <span>服务端</span>
-        <span>{{ syncStatus.serverReachable ? "可达" : "不可达" }}</span>
+        <span>{{ t("syncServer") }}</span>
+        <span>{{ syncStatus.serverReachable ? t("syncReachable") : t("syncUnreachable") }}</span>
       </div>
       <div class="sync-row">
-        <span>待同步</span>
-        <span>{{ pendingCount }} 天</span>
+        <span>{{ t("syncPending") }}</span>
+        <span>{{ pendingDaysLabel }}</span>
       </div>
       <div class="sync-row">
-        <span>上次同步</span>
-        <span>{{ formatTimeDisplay(syncStatus.lastSyncAt) }}</span>
+        <span>{{ t("syncLast") }}</span>
+        <span>{{ formatTimeDisplay(syncStatus.lastSyncAt, localeTag) }}</span>
       </div>
       <div class="sync-row" v-if="syncStatus.lastError">
-        <span>错误</span>
+        <span>{{ t("syncError") }}</span>
         <span>{{ syncStatus.lastError }}</span>
       </div>
       <div class="sync-actions">
         <button class="primary-btn" @click="triggerSync" :disabled="syncStatus.syncing">
-          {{ syncStatus.syncing ? "同步中" : "立即同步" }}
+          {{ syncStatus.syncing ? t("syncSyncing") : t("syncNow") }}
         </button>
         <button class="ghost-btn" @click="openConflictList" :disabled="conflictCount === 0">
-          查看冲突 ({{ conflictCount }})
+          {{ conflictButtonLabel }}
         </button>
       </div>
     </div>
@@ -273,6 +287,151 @@ import { formatDateDisplay, formatTimeDisplay, todayString } from "./utils/date"
 
 marked.setOptions({ breaks: true });
 
+const translations = {
+  zh: {
+    navHistory: "历史",
+    navSettings: "设置",
+    titleToday: "今日",
+    titleHistory: "历史",
+    titleSettings: "设置",
+    titleConflict: "冲突",
+    editorPreview: "预览",
+    editorEdit: "编辑",
+    editorDelete: "删除",
+    editorPlaceholder: "今天写点什么...",
+    historyTitle: "历史日记",
+    historySearchPlaceholder: "搜索历史日记",
+    historyEmpty: "暂无记录",
+    historyNoMatch: "未找到匹配内容",
+    settingsServerUrl: "服务端地址",
+    settingsUsername: "用户名",
+    settingsPassword: "密码",
+    settingsRemember: "记住登录",
+    settingsLogin: "登录",
+    settingsLogout: "登出",
+    settingsLoggedInAs: "已登录：",
+    settingsUnknownUser: "未知用户",
+    settingsAutoSync: "前台自动同步",
+    settingsExport: "导出",
+    settingsImport: "导入",
+    settingsClear: "清除本地数据",
+    settingsLanguage: "语言",
+    settingsLanguageAuto: "跟随浏览器",
+    settingsLanguageZh: "中文",
+    settingsLanguageEn: "English",
+    conflictTitle: "冲突处理",
+    conflictLocal: "本地版本",
+    conflictRemote: "远端版本",
+    conflictRemoteDeleted: "远端已删除",
+    conflictUseLocal: "用本地覆盖远端",
+    conflictUseRemote: "用远端覆盖本地",
+    syncNetwork: "网络",
+    syncOnline: "在线",
+    syncOffline: "离线",
+    syncServer: "服务端",
+    syncReachable: "可达",
+    syncUnreachable: "不可达",
+    syncPending: "待同步",
+    syncLast: "上次同步",
+    syncError: "错误",
+    syncSyncing: "同步中",
+    syncNow: "立即同步",
+    syncConflicts: "查看冲突",
+    statusConflict: "存在冲突",
+    statusPending: "待同步",
+    statusPendingOffline: "已保存（本地）",
+    statusError: "同步失败",
+    statusSynced: "已同步",
+    statusConflictShort: "冲突",
+    statusErrorShort: "错误",
+    emptyContent: "（空）",
+    confirmDelete: "确定删除这一天的日记？",
+    confirmClear: "将清除全部本地数据，是否继续？",
+    importUnsupported: "不支持的备份版本",
+    loginNeedServer: "请先填写服务端地址",
+    loginNeedCreds: "请输入用户名和密码",
+    loginSuccess: "登录成功",
+    logoutSuccess: "已登出",
+    syncNeedLogin: "请先登录并配置服务端",
+    calendarToggle: "切换日历",
+    syncStatusLabel: "同步状态"
+  },
+  en: {
+    navHistory: "History",
+    navSettings: "Settings",
+    titleToday: "Today",
+    titleHistory: "History",
+    titleSettings: "Settings",
+    titleConflict: "Conflict",
+    editorPreview: "Preview",
+    editorEdit: "Edit",
+    editorDelete: "Delete",
+    editorPlaceholder: "Write something today...",
+    historyTitle: "Journal history",
+    historySearchPlaceholder: "Search entries",
+    historyEmpty: "No entries yet",
+    historyNoMatch: "No matches found",
+    settingsServerUrl: "Server URL",
+    settingsUsername: "Username",
+    settingsPassword: "Password",
+    settingsRemember: "Remember login",
+    settingsLogin: "Log in",
+    settingsLogout: "Log out",
+    settingsLoggedInAs: "Logged in as: ",
+    settingsUnknownUser: "Unknown",
+    settingsAutoSync: "Auto sync in foreground",
+    settingsExport: "Export",
+    settingsImport: "Import",
+    settingsClear: "Clear local data",
+    settingsLanguage: "Language",
+    settingsLanguageAuto: "Follow browser",
+    settingsLanguageZh: "Chinese",
+    settingsLanguageEn: "English",
+    conflictTitle: "Resolve conflict",
+    conflictLocal: "Local version",
+    conflictRemote: "Remote version",
+    conflictRemoteDeleted: "Remote entry deleted",
+    conflictUseLocal: "Overwrite remote with local",
+    conflictUseRemote: "Overwrite local with remote",
+    syncNetwork: "Network",
+    syncOnline: "Online",
+    syncOffline: "Offline",
+    syncServer: "Server",
+    syncReachable: "Reachable",
+    syncUnreachable: "Unreachable",
+    syncPending: "Pending",
+    syncLast: "Last sync",
+    syncError: "Error",
+    syncSyncing: "Syncing",
+    syncNow: "Sync now",
+    syncConflicts: "View conflicts",
+    statusConflict: "Conflict",
+    statusPending: "Pending",
+    statusPendingOffline: "Saved locally",
+    statusError: "Sync failed",
+    statusSynced: "Synced",
+    statusConflictShort: "Conflict",
+    statusErrorShort: "Error",
+    emptyContent: "(empty)",
+    confirmDelete: "Delete this day's entry?",
+    confirmClear: "This will clear all local data. Continue?",
+    importUnsupported: "Unsupported backup version",
+    loginNeedServer: "Please enter the server URL",
+    loginNeedCreds: "Please enter username and password",
+    loginSuccess: "Logged in",
+    logoutSuccess: "Logged out",
+    syncNeedLogin: "Please log in and configure server",
+    calendarToggle: "Toggle calendar",
+    syncStatusLabel: "Sync status"
+  }
+} as const;
+
+type TranslationKey = keyof typeof translations.zh;
+
+function detectLanguage(): "zh" | "en" {
+  return navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
 const view = ref<"editor" | "history" | "settings" | "conflict">("editor");
 const editorMode = ref<"edit" | "preview">("edit");
 const selectedDate = ref(todayString());
@@ -295,7 +454,8 @@ const settings = reactive<Settings>({
   username: "",
   token: null,
   rememberCredentials: false,
-  autoSyncEnabled: true
+  autoSyncEnabled: true,
+  language: "auto"
 });
 
 const syncStatus = reactive({
@@ -306,24 +466,37 @@ const syncStatus = reactive({
   lastError: ""
 });
 
-const weekdayLabels = ["日", "一", "二", "三", "四", "五", "六"];
+const resolvedLanguage = computed(() => {
+  if (!settings.language || settings.language === "auto") {
+    return detectLanguage();
+  }
+  return settings.language;
+});
+const localeTag = computed(() => (resolvedLanguage.value === "zh" ? "zh-CN" : "en-US"));
+const t = (key: TranslationKey) => translations[resolvedLanguage.value][key];
+
+const weekdayLabels = computed(() =>
+  resolvedLanguage.value === "zh"
+    ? ["日", "一", "二", "三", "四", "五", "六"]
+    : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+);
 
 const calendarWeeks = computed(() => buildMonthCalendar(calendarCursor.value));
 const calendarTitle = computed(() =>
-  calendarCursor.value.toLocaleDateString("zh-CN", { year: "numeric", month: "long" })
+  calendarCursor.value.toLocaleDateString(localeTag.value, { year: "numeric", month: "long" })
 );
 
 const headerTitle = computed(() => {
   if (view.value === "editor") {
-    return selectedDate.value === todayString() ? "今日" : selectedDate.value;
+    return selectedDate.value === todayString() ? t("titleToday") : selectedDate.value;
   }
   if (view.value === "history") {
-    return "历史";
+    return t("titleHistory");
   }
   if (view.value === "settings") {
-    return "设置";
+    return t("titleSettings");
   }
-  return "冲突";
+  return t("titleConflict");
 });
 
 const previewHtml = computed(() => marked.parse(editorContent.value || ""));
@@ -347,24 +520,35 @@ const historyList = computed(() => {
 const pendingCount = ref(0);
 const conflictCount = ref(0);
 const isLoggedIn = computed(() => !!activeToken());
+const loggedInLabel = computed(
+  () => `${t("settingsLoggedInAs")}${settings.username || t("settingsUnknownUser")}`
+);
+const pendingDaysLabel = computed(() => {
+  const count = pendingCount.value;
+  if (resolvedLanguage.value === "zh") {
+    return `${count} 天`;
+  }
+  return `${count} day${count === 1 ? "" : "s"}`;
+});
+const conflictButtonLabel = computed(() => `${t("syncConflicts")} (${conflictCount.value})`);
 
 const entryStatusLabel = computed(() => {
   if (!currentEntry.value) {
     return "";
   }
   if (currentEntry.value.syncStatus === "conflict") {
-    return "存在冲突";
+    return t("statusConflict");
   }
   if (currentEntry.value.syncStatus === "pending") {
-    return syncStatus.online ? "待同步" : "已保存（本地）";
+    return syncStatus.online ? t("statusPending") : t("statusPendingOffline");
   }
   if (currentEntry.value.syncStatus === "error") {
-    return "同步失败";
+    return t("statusError");
   }
-  return "已同步";
+  return t("statusSynced");
 });
 
-const editorModeLabel = computed(() => (editorMode.value === "edit" ? "预览" : "编辑"));
+const editorModeLabel = computed(() => (editorMode.value === "edit" ? t("editorPreview") : t("editorEdit")));
 
 const syncDotClass = computed(() => {
   if (conflictCount.value > 0) {
@@ -442,20 +626,20 @@ function nextMonth() {
 
 function previewText(text: string) {
   const normalized = text.replace(/\s+/g, " ").trim();
-  return normalized.length > 80 ? `${normalized.slice(0, 80)}...` : normalized || "（空）";
+  return normalized.length > 80 ? `${normalized.slice(0, 80)}...` : normalized || t("emptyContent");
 }
 
 function statusLabel(entry: EntryRecord) {
   if (entry.syncStatus === "pending") {
-    return "待同步";
+    return t("statusPending");
   }
   if (entry.syncStatus === "conflict") {
-    return "冲突";
+    return t("statusConflictShort");
   }
   if (entry.syncStatus === "error") {
-    return "错误";
+    return t("statusErrorShort");
   }
-  return "已同步";
+  return t("statusSynced");
 }
 
 async function loadEntry(date: string) {
@@ -532,7 +716,7 @@ async function deleteCurrentEntry() {
   if (!currentEntry.value) {
     return;
   }
-  if (!confirm("确定删除这一天的日记？")) {
+  if (!confirm(t("confirmDelete"))) {
     return;
   }
 
@@ -557,13 +741,13 @@ function activeToken() {
 async function login() {
   authMessage.value = "";
   if (!settings.serverBaseUrl) {
-    syncStatus.lastError = "请先填写服务端地址";
+    syncStatus.lastError = t("loginNeedServer");
     authMessageTone.value = "error";
     authMessage.value = syncStatus.lastError;
     return;
   }
   if (!settings.username || !loginPassword.value) {
-    syncStatus.lastError = "请输入用户名和密码";
+    syncStatus.lastError = t("loginNeedCreds");
     authMessageTone.value = "error";
     authMessage.value = syncStatus.lastError;
     return;
@@ -589,7 +773,7 @@ async function login() {
     await saveSettings({ ...settings });
     syncStatus.lastError = "";
     authMessageTone.value = "success";
-    authMessage.value = "登录成功";
+    authMessage.value = t("loginSuccess");
     if (settings.autoSyncEnabled && navigator.onLine) {
       await triggerSync();
     } else {
@@ -608,7 +792,7 @@ async function logout() {
   await saveSettings({ ...settings });
   syncStatus.lastError = "";
   authMessageTone.value = "success";
-  authMessage.value = "已登出";
+  authMessage.value = t("logoutSuccess");
 }
 
 async function checkServerReachable() {
@@ -629,7 +813,7 @@ async function triggerSync() {
     return;
   }
   if (!settings.serverBaseUrl || !activeToken()) {
-    syncStatus.lastError = "请先登录并配置服务端";
+    syncStatus.lastError = t("syncNeedLogin");
     return;
   }
 
@@ -766,7 +950,7 @@ async function importData(event: Event) {
   };
 
   if (payload.schemaVersion !== 1) {
-    alert("不支持的备份版本");
+    alert(t("importUnsupported"));
     return;
   }
 
@@ -790,7 +974,7 @@ async function importData(event: Event) {
 }
 
 async function clearLocalData() {
-  if (!confirm("将清除全部本地数据，是否继续？")) {
+  if (!confirm(t("confirmClear"))) {
     return;
   }
   const data = await listEntries(true);

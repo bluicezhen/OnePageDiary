@@ -19,6 +19,7 @@ export interface Settings {
   token: string | null;
   rememberCredentials: boolean;
   autoSyncEnabled: boolean;
+  language: "auto" | "zh" | "en";
 }
 
 export interface SyncState {
