@@ -1,0 +1,10 @@
+# Node
+web/node_modules/
+web/dist/
+
+# Go
+server/data/
+server/*.db
+
+# Editor
+.DS_Store

@@ -1,0 +1,15 @@
+{
+  "name": "OnePage Diary",
+  "short_name": "Diary",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f2f2",
+  "theme_color": "#f2f2f2",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
