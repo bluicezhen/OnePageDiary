@@ -1,19 +1,21 @@
 services:
   server:
-    build: ./server
+    image: docker.io/bluicezhen/onepage-diary-server:latest
+    pull_policy: always
     ports:
       - "8080:8080"
     environment:
-      APP_ADDR: ":8080"
-      APP_DB_PATH: "/data/diary.db"
-      APP_ADMIN_USER: "admin"
-      APP_ADMIN_PASS: "admin"
-      APP_JWT_SECRET: "change-me"
-      APP_CORS_ORIGINS: "*"
+      APP_ADDR: "${APP_ADDR:-:8080}"
+      APP_DB_PATH: "${APP_DB_PATH:-/data/diary.db}"
+      APP_ADMIN_USER: "${APP_ADMIN_USER:-admin}"
+      APP_ADMIN_PASS: "${APP_ADMIN_PASS:-admin}"
+      APP_JWT_SECRET: "${APP_JWT_SECRET:-change-me}"
+      APP_CORS_ORIGINS: "${APP_CORS_ORIGINS:-*}"
     volumes:
       - ./data:/data
   web:
-    build: ./web
+    image: docker.io/bluicezhen/onepage-diary-web:latest
+    pull_policy: always
     ports:
       - "8081:80"
     depends_on:

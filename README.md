@@ -43,10 +43,30 @@ npm run dev
 ### Docker Compose
 
 ```bash
-docker compose up --build
+docker compose up
 ```
 
 前端地址：`http://127.0.0.1:8081`（通过 `/api` 反代后端，默认无需手动填写服务端地址）。
+默认使用 Docker Hub 镜像并设置 `pull_policy: always`，每次启动都会拉取最新镜像。
+
+可选：在仓库根目录新建 `.env`（与 `docker-compose.yml` 同级）覆盖后端配置，例如：
+
+```bash
+APP_ADDR=:8080
+APP_DB_PATH=/data/diary.db
+APP_ADMIN_USER=admin
+APP_ADMIN_PASS=admin
+APP_JWT_SECRET=change-me
+APP_CORS_ORIGINS=*
+```
+
+### GitHub Actions 构建镜像
+
+默认推送到 Docker Hub：`docker.io/bluicezhen/onepage-diary-{server,web}`。
+在 GitHub 仓库 `Settings -> Secrets and variables -> Actions` 配置：
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
 
 ## 同步说明
 
