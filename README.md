@@ -38,12 +38,15 @@ npm run dev
 ```
 
 浏览器打开 `http://127.0.0.1:5173`。
+开发模式下 `/api` 会代理到 `http://127.0.0.1:8080`。
 
 ### Docker Compose
 
 ```bash
 docker compose up --build
 ```
+
+前端地址：`http://127.0.0.1:8081`（通过 `/api` 反代后端，默认无需手动填写服务端地址）。
 
 ## 同步说明
 

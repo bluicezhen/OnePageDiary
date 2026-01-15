@@ -12,3 +12,9 @@ services:
       APP_CORS_ORIGINS: "*"
     volumes:
       - ./data:/data
+  web:
+    build: ./web
+    ports:
+      - "8081:80"
+    depends_on:
+      - server

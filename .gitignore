@@ -8,3 +8,7 @@ server/*.db
 
 # Editor
 .DS_Store
+.vscode/
+
+# Others
+data/

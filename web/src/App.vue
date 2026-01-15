@@ -795,6 +795,9 @@ watch(
 onMounted(async () => {
   const storedSettings = await getSettings();
   Object.assign(settings, storedSettings);
+  if (!settings.serverBaseUrl) {
+    settings.serverBaseUrl = window.location.origin;
+  }
   if (!settings.rememberCredentials && settings.token) {
     sessionToken.value = settings.token;
     settings.token = null;
