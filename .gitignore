@@ -8,7 +8,8 @@ server/*.db
 
 # Editor
 .DS_Store
-.vscode/
+.vscode/:q;
 
 # Others
 data/
+AGENTS.md
